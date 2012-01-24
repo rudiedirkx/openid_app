@@ -17,13 +17,18 @@ class pagesController extends Controller {
 	protected function _init() {
 		parent::_init();
 
-		$this->aclAdd('login', array('logout', 'restricted'));
+		$this->aclAdd('login', array('restricted'));
 		$this->aclAdd('not login', array('login'));
 
 		$this->tpl->assign('users', User::all());
 
-		FacebookConnect::$appId = '124476034303686';
-		FacebookConnect::$appSecret = 'e53be9828cf3dc890cb1051834122737';
+		FacebookConnect::$appId = '224547814295872';
+		FacebookConnect::$appSecret = '09daa206a14ae04854f81b20eed246a4';
+	}
+
+	public function setvar($name, $value) {
+		$this->user->variable($name, $value);
+		print_r($this->user);
 	}
 
 	public function page( $page = 'Home' ) {
@@ -31,7 +36,7 @@ class pagesController extends Controller {
 
 		$messages = Session::messages();
 
-		return $this->tpl->display(__METHOD__, get_defined_vars());
+		return get_defined_vars();
 	}
 
 	private function approved ( OpenID $openid )
@@ -70,7 +75,7 @@ class pagesController extends Controller {
 
 		$messages = Session::messages();
 
-		return $this->tpl->display(__METHOD__, get_defined_vars());
+		return get_defined_vars();
 	}
 
 	public function post_login()
@@ -172,14 +177,15 @@ $openid->log($openid);
 
 	public function login ( )
 	{
-		// if ( FacebookConnect::isLoggedIn() )
-			// return $this->post_facebook();
+		if ( FacebookConnect::isLoggedIn() ) {
+			return $this->post_facebook();
+		}
 
 		$messages = Session::messages();
 
 		$google = OpenID::$google;
 
-		return $this->tpl->display(__METHOD__, get_defined_vars());
+		return get_defined_vars();
 	}
 
 	public function logout ( )

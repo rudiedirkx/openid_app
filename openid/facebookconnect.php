@@ -15,7 +15,7 @@ class FacebookConnect {
 		$cookieName = 'fbs_' . static::$appId;
 		if ( !isset($_COOKIE[$cookieName]) )
 			return null;
-
+echo "oele";
 		parse_str(trim($_COOKIE[$cookieName], '\\"'), $args);
 		ksort($args);
 		$payload = '';
@@ -48,7 +48,9 @@ class FacebookConnect {
 	 */
 	static public function getUserInfo( )
 	{
+print_r($_COOKIE);
 		$cookie = static::getCookie();
+var_dump($cookie);
 		if ( $cookie == null )
 			return null;
 

@@ -57,6 +57,8 @@ li.success {
 		</ul>
 	</footer>
 
+	<pre>session_id: <?=session_id() . "\n"?>session_name: <?=session_name()?></pre>
+	<pre><? print_r($_COOKIE) ?></pre>
 	<pre><? print_r($_SESSION) ?></pre>
 	<pre><? print_r($_POST) ?></pre>
 	<pre><? print_r($_GET) ?></pre>

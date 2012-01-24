@@ -1,0 +1,5 @@
+https://www.facebook.com/dialog/oauth?client_id=224547814295872&redirect_uri=http://home.hotblocks.nl/facebook
+
+https://graph.facebook.com/oauth/access_token?client_id=224547814295872&redirect_uri=http://home.hotblocks.nl/facebook&client_secret=09daa206a14ae04854f81b20eed246a4&code=AQCnfJUANkhtX3oAL5whzpTU4MZ0kJitSDehxMq2AU3WB0vxKKALXU617tOpirZR5J0UGa-k1XTa6iYsNrCffR2Q27pS_69LcTTIey44BYbNvk8JyOMAZMKZ91MEcI8F8RMmnNziebcEmwJazHjWN0mmfjuvhZgXapW5_HyxUM9aEeJyUumU0K1l4K1w9b3Ebm8
+
+https://graph.facebook.com/me?access_token=AAADMOZAy0yUABAJXVwOmGoDQEyrdSinKsZC3UxcrtGBiTkqsZBJ8mnRN00RQmXk2OyVI4HEUuqf7QjYvvYpw5ipi7khZCJrHkWLAGqGafAZDZD

@@ -6,8 +6,8 @@ class Dispatcher extends \row\http\Dispatcher {
 
 	public $cache = false;
 
-	public function getDefaultOptions() {
-		$options = parent::getDefaultOptions();
+	public function getOptions() {
+		$options = parent::getOptions();
 
 		$options->action_name_postfix = '';
 

@@ -5,11 +5,7 @@ use app\specs\Dispatcher; // My custom Dispatcher
 // Config Vendors, database, ... ?
 require(dirname(__DIR__).'/config/bootstrap.php');
 
-// Config Dispatcher
-$options = array(
-
-);
-$dispatcher = new Dispatcher($options);
+$dispatcher = new Dispatcher($controllers);
 
 // Enable routes (available through config/routes.php through config/bootstrap.php)
 $dispatcher->setRouter($router);

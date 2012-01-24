@@ -19,9 +19,13 @@ OR<br />
 <div id="fb-root"></div>
 <script src="http://connect.facebook.net/en_US/all.js"></script>
 <script>
-	FB.init({appId: '<?= FacebookConnect::$appId ?>', status: true,
-		cookie: true, xfbml: true});
-	FB.Event.subscribe('auth.login', function(response) {
-		window.location = '<?=Output::url('pages/post_facebook')?>';
-	});
+FB.init({
+	appId: '<?= FacebookConnect::$appId ?>',
+	status: true,
+	cookie: true,
+	xfbml: true
+});
+FB.Event.subscribe('auth.login', function(response) {
+	window.location = '<?=Output::url('pages/post_facebook')?>';
+});
 </script>

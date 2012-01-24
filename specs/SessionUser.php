@@ -44,8 +44,7 @@ class SessionUser extends \row\auth\SessionUser {
 	}
 
 	public function logout() {
-		if ( $this->isLoggedIn() ) {
-			array_pop(Session::$session['logins']);
+		if ( parent::logout() ) {
 			Session::success('You are now logged out.');
 		}
 	}
