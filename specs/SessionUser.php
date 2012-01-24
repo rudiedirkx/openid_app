@@ -12,13 +12,19 @@ class SessionUser extends \row\auth\SessionUser {
 		$login = parent::login($user);
 		extract($login);
 
-		$login['user_id'] = $user->id;
+		$login['user_id'] = $user->user_id;
 		Session::$session['logins'][] = $login;
 		$this->user = $user;
-		
-		$user->update(array('last_login' => time(), 'last_access' => time(), 'unicheck' => $login['unicheck']));
 
-		return true; // Why would this ever be false??
+		$user->update(array(
+			'last_login' => time(),
+			'last_access' => time(),
+			'unicheck' => $login['unicheck']
+		));
+
+		Session::success("You're now logged in...");
+
+		return true;
 	}
 
 	public function validate() {
@@ -29,8 +35,8 @@ class SessionUser extends \row\auth\SessionUser {
 				$this->salt = $login['salt'];
 				$this->user->update(array('last_access' => time()));
 			}
-			catch ( Exception $ex ) { 
-				// no result, not logged in!
+			catch ( Exception $ex ) {
+				$this->logout();
 			}
 		}
 	}
@@ -54,7 +60,7 @@ class SessionUser extends \row\auth\SessionUser {
 	}
 
 	public function userID() {
-		return $this->isLoggedIn() ? (int)$this->user->id : 0;
+		return $this->isLoggedIn() ? (int)$this->user->user_id : 0;
 	}
 }
 

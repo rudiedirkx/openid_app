@@ -15,9 +15,10 @@ class OpenID
 	static public $google = 'https://www.google.com/accounts/o8/id';
 
 	public function log( $ct ) {
-		$logfile = ROW_APP_PATH . '/runtime/openid-' . number_format(microtime(1), 6) . '.log';
-		is_string($ct) or $ct = print_r($ct, 1);
-		return file_put_contents($logfile, $ct);
+		return;
+#		$logfile = ROW_APP_PATH . '/runtime/openid-' . number_format(microtime(1), 6) . '.log';
+#		is_string($ct) or $ct = print_r($ct, 1);
+#		return file_put_contents($logfile, $ct);
 	}
 
     public $returnUrl

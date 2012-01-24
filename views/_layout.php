@@ -20,6 +20,9 @@ li.error {
 li.success {
 	color: green;
 }
+li.warning {
+	color: orange;
+}
 	</style>
 </head>
 
@@ -29,9 +32,10 @@ li.success {
 		<p>My app header</p>
 		<p>
 			Pages:
-			<?=$this::link('restricted', 'pages/restricted')?>,
-			<?=$this::link('login', 'pages/login')?>,
-			<?=$this::link('logout', 'pages/logout')?>
+			<?=$this::link('Secrets!', 'pages/restricted')?>,
+			<?=$this::link('Accounts', 'pages/accounts')?>,
+			<?=$this::link('Log in', 'pages/login')?>,
+			<?=$this::link('Log out', 'pages/logout')?>
 		</p>
 	</header>
 
@@ -57,7 +61,6 @@ li.success {
 		</ul>
 	</footer>
 
-	<pre>session_id: <?=session_id() . "\n"?>session_name: <?=session_name()?></pre>
 	<pre><? print_r($_COOKIE) ?></pre>
 	<pre><? print_r($_SESSION) ?></pre>
 	<pre><? print_r($_POST) ?></pre>

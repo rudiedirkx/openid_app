@@ -6,7 +6,6 @@ use app\specs\Controller;
 use app\openid\OpenID;
 use app\openid\FacebookConnect;
 use app\models\UserOpenID;
-use app\models\UserFacebookConnect;
 use app\models\User;
 use ErrorException;
 use row\database\ModelException;
@@ -17,13 +16,13 @@ class pagesController extends Controller {
 	protected function _init() {
 		parent::_init();
 
-		$this->aclAdd('login', array('restricted'));
-		$this->aclAdd('not login', array('login'));
+		$this->aclAdd('login', array('restricted', 'accounts'));
 
 		$this->tpl->assign('users', User::all());
 
 		FacebookConnect::$appId = '224547814295872';
 		FacebookConnect::$appSecret = '09daa206a14ae04854f81b20eed246a4';
+		FacebookConnect::$redirectURI = 'pages/facebook';
 	}
 
 	public function setvar($name, $value) {
@@ -31,7 +30,7 @@ class pagesController extends Controller {
 		print_r($this->user);
 	}
 
-	public function page( $page = 'Home' ) {
+	public function index( $page = 'Home' ) {
 		$blag = 'tieten';
 
 		$messages = Session::messages();
@@ -39,7 +38,14 @@ class pagesController extends Controller {
 		return get_defined_vars();
 	}
 
-	private function approved ( OpenID $openid )
+	public function accounts() {
+		$accounts = UserOpenID::all(array('user_id' => $this->user->userID()));
+
+		return get_defined_vars();
+	}
+
+	/**
+	private function DEPRECATED_approved ( OpenID $openid )
 	{
 		// kan ook one zijn, maar dan kunt ge exception krijgen :o
 		try
@@ -61,15 +67,16 @@ class pagesController extends Controller {
 		catch ( Exception $ex )
 		{
 			// something is batshit wrong, let's just die!
-			return $this->page();
+			return $this->index();
 		}
 
 		$this->user->login($user);
 
 		return $this->_redirect('pages/restricted');
 	}
+	/**/
 
-	public function restricted ( )
+	public function restricted()
 	{
 		$content = $this->user->user . '! You found my sikrit stash of stashes :(';
 
@@ -90,21 +97,80 @@ class pagesController extends Controller {
 			return $this->handle_openid_login($identity, true);
 		}
 
-#		else if ( isset($_POST['openid.identity']) ) {
-#			return $this->handle_openid_login($_POST['openid.identity']);
-#		}
-
 		$messages = Session::messages();
 
 		return $this->login();
 	}
 
-	/*public function post_google () {
-		$identity = 'https://www.google.com/accounts/o8/id';
-		return $this->handle_openid_login($identity);
-	}*/
+	public function facebook() {
+		$auth = FacebookConnect::authenticate();
 
-	public function post_facebook ( )
+		if ( !$auth ) {
+			exit('Something failed... Probably you?');
+		}
+
+		$id = $auth->id;
+		$conditions = array(
+			'provider_type' => 'facebook',
+			'identity' => $id,
+		);
+
+		return $this->approved($conditions, $auth);
+	}
+
+	private function approved($conditions, $params = array()) {
+		try {
+			// existing openid user
+			$openid = UserOpenID::one($conditions);
+
+			if ( $this->user->isLoggedIn() /*&& $this->user->userID() == $openid->user_id*/ ) {
+				Session::warning('That account is already connected.');
+
+				return $this->_redirect('pages/restricted');
+			}
+
+			// get user object
+			$user = User::get($openid->user_id);
+		}
+		catch ( ModelException $ex ) {
+			// remove potential openid user
+			UserOpenID::_delete($conditions);
+
+			// new user
+			if ( !$this->user->isLoggedIn() ) {
+				// insert
+				$user = array(
+					'signed_up_at' => time(),
+					'first_login' => time(),
+				);
+				$uid = User::insert($user);
+
+				// get user object
+				$user = User::get($uid);
+			}
+			// current user
+			else {
+				$user = $this->user->user;
+			}
+
+			// new openid user
+			$conditions['user_id'] = $user->user_id;
+			$conditions['params'] = json_encode($params);
+			UserOpenID::insert($conditions);
+		}
+
+		if ( !$this->user->isLoggedIn() ) {
+			$this->user->login($user);
+		}
+		else {
+			Session::success('Account connected!');
+		}
+
+		return $this->_redirect('pages/restricted');
+	}
+
+	/**
+	public function DEPRECATED_post_facebook ( )
 	{
 		$user_info = FacebookConnect::getUserInfo();
 		if ( $user_info == null )
@@ -130,20 +196,19 @@ class pagesController extends Controller {
 		catch ( Exception $ex )
 		{
 			// something is batshit wrong, let's just die!
-			return $this->page();
+			return $this->index();
 		}
 
 		$this->user->login($user);
 
 		return $this->_redirect('pages/restricted');
 	}
+	/**/
 
 	private function handle_openid_login ( $identity, $debug = false )
 	{
 		try {
 			$openid = new OpenID();
-//$openid->returnUrl = 'http://localhost/_http_server.php';
-$openid->log($openid);
 			// blag, de optional mag weg eventueel, nu krijgt ge deze gegevens gewoon als de user heeft ingesteld da ge ze moogt krijgen
 			$openid->optional = array('namePerson/friendly', 'contact/email', 'namePerson', 'birthDate', 'person/gender', 'contact/postalCode/home', 'contact/country/home', 'pref/language', 'pref/timezone');
 
@@ -151,35 +216,37 @@ $openid->log($openid);
 			if ( !$openid->mode ) {
 				$openid->identity = $identity;
 				$authUrl = $openid->authUrl();
-//exit($authUrl);
 				return $this->_redirect($authUrl);
 			}
 
 			// cancel
 			else if ( $openid->mode == 'cancel' ) {
-				return $this->page('Login Cancelled');
+				return $this->index('Login Cancelled');
 			}
 
 			// id_res ?
 			else {
-$openid->log($openid);
 				if ( $openid->validate() ) {
-$openid->log($openid);
-					return $this->approved($openid);
+					$conditions = array(
+						'provider_type' => 'openid',
+						'identity' => $openid->identity,
+					);
+
+					return $this->approved($conditions, $openid->data);
 				}
 
-				return $this->page('KUTHOER');
+				return $this->index('KUTHOER');
 			}
 		} catch( ErrorException $e ) {
-			return $this->page($e->getMessage());
+			return $this->index($e->getMessage());
 		}
 	}
 
 	public function login ( )
 	{
-		if ( FacebookConnect::isLoggedIn() ) {
-			return $this->post_facebook();
-		}
+#		if ( FacebookConnect::isLoggedIn() ) {
+#			return $this->post_facebook();
+#		}
 
 		$messages = Session::messages();
 
@@ -188,10 +255,10 @@ $openid->log($openid);
 		return get_defined_vars();
 	}
 
-	public function logout ( )
-	{
+	public function logout() {
 		$this->user->logout();
-		return $this->page();
+
+		return $this->_redirect('pages');
 	}
 }
 
