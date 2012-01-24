@@ -1,6 +1,3 @@
-<?php
-use row\auth\openid\FacebookConnect;
-?>
 
 <h1>Login</h1>
 
@@ -13,4 +10,4 @@ OR<br />
 
 <button onclick="(function(id){ id.value='<?=$this::javascript($google)?>'; id.form.submit(); })(document.getElementById('identity'));">Login with Google</button>
 
-<button onclick="document.location = '<?=$this::javascript(FacebookConnect::login(false))?>';">Login with FriendFace</button>
+<button onclick="document.location = '<?=$this::javascript($Facebook->login())?>';">Login with FriendFace</button>

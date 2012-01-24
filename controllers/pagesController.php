@@ -18,15 +18,12 @@ class pagesController extends Controller {
 
 		$this->aclAdd('login', array('restricted', 'accounts'));
 
-		$this->tpl->assign('users', User::all());
-
-		$facebook = new FacebookConnect(FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, array(
+		$this->Facebook = new FacebookConnect(FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, array(
 			'redirect_uri' => FACEBOOK_REDIRECT_URI,
 		));
+		$this->tpl->assign('Facebook', $this->Facebook);
 
-		FacebookConnect::$appId = FACEBOOK_APP_ID;
-		FacebookConnect::$appSecret = FACEBOOK_APP_SECRET;
-		FacebookConnect::$redirectURI = FACEBOOK_REDIRECT_URI;
+		$this->tpl->assign('users', User::all());
 	}
 
 	public function setvar($name, $value) {
@@ -48,40 +45,7 @@ class pagesController extends Controller {
 		return get_defined_vars();
 	}
 
-	/**
-	private function DEPRECATED_approved ( OpenID $openid )
-	{
-		// kan ook one zijn, maar dan kunt ge exception krijgen :o
-		try
-		{
-			$userOpenID = UserOpenID::one(array('identity' => $openid->identity));
-			$user_id = $userOpenID->user_id;
-		}
-		catch( ModelException $e )
-		{
-			// first login of this user! make new user!
-			$user_id = User::insert(array('first_login' => time(), 'last_login' => time(), 'last_access' => time()));
-			UserOpenID::insert(array('user_id' => $user_id, 'identity' => $openid->identity));
-			// might wanne keep on redirecting this fuck and tell him to do something, like fill in a username or have sex with your granny
-		}
-
-		try {
-			$user = User::get($user_id);
-		}
-		catch ( Exception $ex )
-		{
-			// something is batshit wrong, let's just die!
-			return $this->index();
-		}
-
-		$this->user->login($user);
-
-		return $this->_redirect('pages/restricted');
-	}
-	/**/
-
-	public function restricted()
-	{
+	public function restricted() {
 		$content = $this->user->user . '! You found my sikrit stash of stashes :(';
 
 		$messages = Session::messages();
@@ -89,25 +53,29 @@ class pagesController extends Controller {
 		return get_defined_vars();
 	}
 
-	public function post_login()
-	{
+	public function post_login() {
 		if ( @$_REQUEST['openid_mode'] == 'cancel' ) {
 			Session::success('OpenID login cancelled');
-			return $this->login();
+
+			return $this->_redirect('pages/login');
 		}
 
 		$identity = @$_REQUEST['openid_identity'] ?: @$_REQUEST['identity'];
 		if ( $identity ) {
-			return $this->handle_openid_login($identity, true);
+			return $this->handle_openid_login($identity);
 		}
 
 		$messages = Session::messages();
 
-		return $this->login();
+		return $this->_redirect('pages/login');
+	}
+
+	public function openid() {
+		
 	}
 
 	public function facebook() {
-		$auth = FacebookConnect::authenticate();
+		$auth = $this->Facebook->validate(); // get CODE from REQUEST
 
 		if ( !$auth ) {
 			exit('Something failed... Probably you?');
@@ -173,59 +141,13 @@ class pagesController extends Controller {
 		return $this->_redirect('pages/restricted');
 	}
 
-	/**
-	public function DEPRECATED_post_facebook ( )
-	{
-		$user_info = FacebookConnect::getUserInfo();
-		if ( $user_info == null )
-			return $this->login();
-
-		// kan ook one zijn, maar dan kunt ge exception krijgen :o
-		try
-		{
-			$userFacebookConnect = UserFacebookConnect::one(array('facebook_id' => $user_info->id));
-			$user_id = $userFacebookConnect->user_id;
-		}
-		catch( ModelException $e )
-		{
-			// first login of this user! make new user!
-			$user_id = User::insert(array('first_login' => time(), 'last_login' => time(), 'last_access' => time()));
-			UserFacebookConnect::insert(array('user_id' => $user_id, 'facebook_id' => $user_info->id));
-			// might wanne keep on redirecting this fuck and tell him to do something, like fill in a username or have sex with your granny
-		}
-
-		try {
-			$user = User::get($user_id);
-		}
-		catch ( Exception $ex )
-		{
-			// something is batshit wrong, let's just die!
-			return $this->index();
-		}
-
-		$this->user->login($user);
-
-		return $this->_redirect('pages/restricted');
-	}
-	/**/
-
-	private function handle_openid_login ( $identity, $debug = false )
-	{
+	private function handle_openid_login( $identity ) {
 		try {
 			$openid = new OpenID();
-			// blag, de optional mag weg eventueel, nu krijgt ge deze gegevens gewoon als de user heeft ingesteld da ge ze moogt krijgen
-			$openid->optional = array('namePerson/friendly', 'contact/email', 'namePerson', 'birthDate', 'person/gender', 'contact/postalCode/home', 'contact/country/home', 'pref/language', 'pref/timezone');
 
 			// new
 			if ( !$openid->mode ) {
-				$openid->identity = $identity;
-				$authUrl = $openid->authUrl();
-				return $this->_redirect($authUrl);
-			}
-
-			// cancel
-			else if ( $openid->mode == 'cancel' ) {
-				return $this->index('Login Cancelled');
+				return redirect($openid->login($identity));
 			}
 
 			// id_res ?
@@ -238,23 +160,19 @@ class pagesController extends Controller {
 
 					return $this->approved($conditions, $openid->data);
 				}
-
-				return $this->index('KUTHOER');
 			}
-		} catch( ErrorException $e ) {
-			return $this->index($e->getMessage());
 		}
+		catch( ErrorException $e ) {}
+
+		Session::warning('Something went awry...');
+
+		return redirect('pages/index');
 	}
 
-	public function login ( )
-	{
-#		if ( FacebookConnect::isLoggedIn() ) {
-#			return $this->post_facebook();
-#		}
-
+	public function login() {
 		$messages = Session::messages();
 
-		$google = OpenID::$google;
+		$google = OpenID::$providers['google'];
 
 		return get_defined_vars();
 	}
@@ -264,6 +182,7 @@ class pagesController extends Controller {
 
 		return $this->_redirect('pages');
 	}
+
 }
 
 

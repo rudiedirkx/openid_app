@@ -33,7 +33,7 @@ li.warning {
 		<p>
 			Pages:
 			<?=$this::link('Secrets!', 'pages/restricted')?>,
-			<?=$this::link('Accounts', 'pages/accounts')?>,
+			<?=$this::link('Indentities', 'pages/accounts')?>,
 			<?=$this::link('Log in', 'pages/login')?>,
 			<?=$this::link('Log out', 'pages/logout')?>
 		</p>
