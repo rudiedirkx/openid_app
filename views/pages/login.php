@@ -1,5 +1,5 @@
 <?php
-use app\openid\FacebookConnect;
+use row\auth\openid\FacebookConnect;
 ?>
 
 <h1>Login</h1>

@@ -6,6 +6,10 @@ define( 'ROW_PATH', dirname(dirname(__DIR__)).'/rudie-on-wheels' ); // Absolute 
 define( 'ROW_VENDORS_PATH', ROW_PATH.'/vendors' ); // Folders with all the vendor folders
 define( 'ROW_VENDOR_ROW_PATH', ROW_VENDORS_PATH.'/row' ); // The folder for the framework vendor Rudie On Wheels
 
+define( 'ROW_APP_SECRET', 'Oele bla I am secret.' );
+
+require(__DIR__.'/env.php');
+
 // core classes
 require(ROW_VENDOR_ROW_PATH.'/core/Object.php');
 require(ROW_VENDOR_ROW_PATH.'/core/Options.php');

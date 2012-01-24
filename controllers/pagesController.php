@@ -3,8 +3,8 @@
 namespace app\controllers;
 
 use app\specs\Controller;
-use app\openid\OpenID;
-use app\openid\FacebookConnect;
+use row\auth\openid\OpenID;
+use row\auth\openid\FacebookConnect;
 use app\models\UserOpenID;
 use app\models\User;
 use ErrorException;
@@ -20,9 +20,13 @@ class pagesController extends Controller {
 
 		$this->tpl->assign('users', User::all());
 
-		FacebookConnect::$appId = '224547814295872';
-		FacebookConnect::$appSecret = '09daa206a14ae04854f81b20eed246a4';
-		FacebookConnect::$redirectURI = 'pages/facebook';
+		$facebook = new FacebookConnect(FACEBOOK_APP_ID, FACEBOOK_APP_SECRET, array(
+			'redirect_uri' => FACEBOOK_REDIRECT_URI,
+		));
+
+		FacebookConnect::$appId = FACEBOOK_APP_ID;
+		FacebookConnect::$appSecret = FACEBOOK_APP_SECRET;
+		FacebookConnect::$redirectURI = FACEBOOK_REDIRECT_URI;
 	}
 
 	public function setvar($name, $value) {
